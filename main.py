@@ -1,11 +1,12 @@
 import argparse
 import logging
+from typing import Annotated
 import numpy as np
 from YOLOFLite import YOLOFLite
 import cv2
 from detection import Detection
 from label import parse_labels
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, File
 import uvicorn
 
 if __name__ != "__main__":
@@ -55,12 +56,11 @@ def root():
     logger.debug("Root endpoint accessed.")
     return {"message": "Hello World"}
 
-@app.put("/detect", response_model=list[Detection])
-async def detect_objects(request: Request):
+@app.post("/detect", response_model=list[Detection])
+async def detect_objects(image: Annotated[bytes, File()]):
     logger.debug("Detect endpoint accessed.")
     try:
-        contents = await request.body()
-        binary_content = np.frombuffer(contents, np.uint8)
+        binary_content = np.frombuffer(image, np.uint8)
         img = cv2.imdecode(binary_content, cv2.IMREAD_COLOR)
         if img is None:
             logger.error("Failed to decode image.")
@@ -75,7 +75,3 @@ async def detect_objects(request: Request):
 
 logger.info("Starting application...")
 uvicorn.run(app, host="0.0.0.0", port=8000)
-
-#detections = detector.detect(img)
-#detector.draw_detections(img, detections)
-#cv2.imwrite("output.jpg", img)
