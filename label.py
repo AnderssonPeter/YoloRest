@@ -5,30 +5,24 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
-class Label(BaseModel):
-    id: int
-    name: Union[str, None]
-
-def parse_labels(file: Union[str, None] = None):
-    labels = []
+def parse_labels(file: str) -> dict[int, str]:
+    labels: dict[int, str] = {}
     if file is None:
-       logger.warning("No file provided, generating labels without names.")
-       labels = [Label(i, None) for i in range(1000)]
+        raise ValueError("File path cannot be None")
     else:
         logger.debug(f"Opening file: {file}")
         try:
             with open(file, 'r') as content:
                 if file.endswith(".yaml") or file.endswith(".yml"):
-                        logger.debug("Processing as a YAML file.")
-                        for id, name in yaml.safe_load(content)["names"].items():
-                            labels.append(Label(id=int(id), name=name.strip()))
+                    logger.debug("Processing as a YAML file.")
+                    for id, name in yaml.safe_load(content)["names"].items():
+                        labels[int(id)] = name
                 else:
                     logger.debug("Processing as a text file.")
                     for line in content:
                         id, name = line.strip().split(' ', maxsplit=1)
-                        detection = Label(id=int(id), name=name.strip())
-                        labels.append(detection)
+                        labels[int(id)] = name.strip()
         except Exception as e:
             logger.error(f"An error occurred while processing the file: {e}")
             raise e
-    return {label.id: label for label in labels}
+    return labels

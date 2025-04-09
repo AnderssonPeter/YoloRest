@@ -4,7 +4,7 @@ from typing import Annotated
 import numpy as np
 from YOLOFLite import YOLOFLite
 import cv2
-from detection import Detection
+from prediction import Predictions
 from label import parse_labels
 from fastapi import FastAPI, File
 import uvicorn
@@ -56,7 +56,7 @@ def root():
     logger.debug("Root endpoint accessed.")
     return {"message": "Hello World"}
 
-@app.post("/detect", response_model=list[Detection])
+@app.post("/detect", response_model=Predictions)
 async def detect_objects(image: Annotated[bytes, File()]):
     logger.debug("Detect endpoint accessed.")
     try:
@@ -66,9 +66,9 @@ async def detect_objects(image: Annotated[bytes, File()]):
             logger.error("Failed to decode image.")
             return {"error": "Invalid image format"}
         logger.debug("Image decoded successfully. Running detection...")
-        detections = detector.detect(img)
-        logger.debug(f"Detection completed. Found {len(detections)} objects.")
-        return detections
+        predictions = detector.detect(img)
+        logger.debug(f"Detection completed. Found {len(predictions.predictions)} objects.")
+        return predictions
     except Exception as e:
         logger.error(f"An error occurred during detection: {e}")
         raise e

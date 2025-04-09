@@ -2,15 +2,13 @@
 import logging
 import os
 import time
-from typing import Tuple, Union, Dict, List
+from typing import Tuple, Dict
 import cv2
 import numpy as np
-import yaml
 
 from tflite_runtime.interpreter import Interpreter, load_delegate
 
-from detection import Detection
-from label import Label
+from prediction import Prediction, Predictions
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +43,7 @@ class YOLOFLite:
     """
 
     # todo: change metadata to labels, that is a dict int, string, support both yaml and labelmap https://github.com/google-coral/tflite/blob/eced31ac01e9c2636150decef7d3c335d0feb304/python/examples/classification/classify_image.py#L55
-    def __init__(self, model: str, labels: Dict[int, Label], conf: float = 0.25, iou: float = 0.45, device: str = "cpu"):
+    def __init__(self, model: str, labels: Dict[int, str], conf: float = 0.25, iou: float = 0.45, device: str = "cpu"):
         """
         Initialize an instance of the YOLOv8TFLite class.
 
@@ -139,7 +137,7 @@ class YOLOFLite:
 
         return img, (top / img.shape[0], left / img.shape[1])
 
-    def draw_detections(self, img: np.ndarray, detections: List[Detection]) -> None:
+    def draw_detections(self, img: np.ndarray, predictions: Predictions) -> None:
         """
         Draw bounding boxes and labels on the input image based on the detected objects.
 
@@ -148,13 +146,13 @@ class YOLOFLite:
             detections: List[Detection]: List of detected objects with their bounding boxes, scores, and class IDs.
         """
         font_scale = 10
-        for detection in detections:
-            color = self.color_palette[detection.label.id]
-            cv2.rectangle(img, (int(detection.left), int(detection.top)), (int(detection.right), int(detection.bottom)), color, 2)
-            label = f"{detection.label.name}: {detection.score:.2f}"
+        for prediction in predictions.predictions:
+            color = self.color_palette[prediction.label.id]
+            cv2.rectangle(img, (int(prediction.x_min), int(prediction.y_min)), (int(prediction.x_max), int(prediction.y_max)), color, 2)
+            label = f"{prediction.label.name}: {prediction.score:.2f}%"
             (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, 1)
-            label_x = detection.left
-            label_y = detection.top - 10 if detection.top - 10 > label_height else detection.top + 10
+            label_x = prediction.x_min
+            label_y = prediction.y_min - 10 if prediction.y_min - 10 > label_height else prediction.y_min + 10
             cv2.rectangle(
                 img,
                 (int(label_x), int(label_y - label_height)),
@@ -183,7 +181,7 @@ class YOLOFLite:
         img = img.astype(np.float32)
         return img / 255, pad  # Normalize to [0, 1]
 
-    def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: Tuple[float, float]) -> List[Detection]:
+    def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: Tuple[float, float]) -> Predictions:
         """
         Process model outputs to extract and visualize detections.
 
@@ -204,7 +202,7 @@ class YOLOFLite:
         outputs = outputs.transpose(0, 2, 1)
         outputs[..., 0] -= outputs[..., 2] / 2  # x center to top-left x
         outputs[..., 1] -= outputs[..., 3] / 2  # y center to top-left y
-        detections = []
+        predictions = Predictions(predictions=[], success=True)
 
         for out in outputs:
             # Get scores and apply confidence threshold
@@ -225,10 +223,12 @@ class YOLOFLite:
                 left, top, w, h = box
                 right = left + w
                 bottom = top + h
-                detections.append(Detection(label=label, score=score, top=top, left=left, bottom=bottom, right=right))
-        return detections
+                predictions.predictions.append(
+                    Prediction(label=label, confidence=score * 100, y_min=top, x_min=left, y_max=bottom, x_max=right)
+                )
+        return predictions
 
-    def detect(self, img: np.ndarray) -> List[Detection]:
+    def detect(self, img: np.ndarray) -> Predictions:
         """
         Perform object detection on an input image.
 
