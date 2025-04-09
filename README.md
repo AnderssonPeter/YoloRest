@@ -70,7 +70,7 @@ services:
       - /dev/apex_0:/dev/apex_0
     command:
       - "--device=pci"
-      - "--label_file=/models/metadata.yaml"
+      - "--label_file=/models/labelmap_yolov8.txt"
       - "--model_file=/models/yolov8m_320_edgetpu.tflite" # This model is slow about 90-100ms, not recommended if you run more than one camera
     labels:
       - "org.label-schema.group=Surveillance"
@@ -83,6 +83,9 @@ detectors:
     type: deepstack
     api_url: http://yolorest:8000/detect
     api_timeout: 0.18 # Only set this if you use a slow model
+
+model:
+  labelmap_path: /models/labelmap_yolov8.txt
 ```
 
 
