@@ -56,6 +56,11 @@ def root():
     logger.debug("Root endpoint accessed.")
     return {"message": "Hello World"}
 
+
+@app.get("/health")
+def health():
+    return ""
+
 @app.post("/detect", response_model=Predictions)
 async def detect_objects(image: Annotated[bytes, File()]):
     logger.debug("Detect endpoint accessed.")
