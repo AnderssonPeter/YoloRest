@@ -38,15 +38,14 @@ RUN adduser \
 COPY . .
 
 RUN pip install -r requirements.txt --no-cache-dir
-# ultralytics has bloated requirements install it on its own, and specify the needed dependencies in requirements.txt
-#RUN pip install --no-deps ultralytics
 
 # Switch to the non-privileged user to run the application.
 USER appuser
 
-
 # Expose the port that the application listens on.
-EXPOSE 8080
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD [ "curl", "--fail", "--silent", "http://localhost:8000/health" ]
 
 # Run the application.
 ENTRYPOINT ["python", "main.py"]
