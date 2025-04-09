@@ -8,7 +8,6 @@ ARG LIBEDGETPU_VERSION1="16.0"
 ARG LIBEDGETPU_VERSION2="2.17.1-1"
 ARG LIBEDGETPU_RELEASE_URL="https://github.com/feranick/libedgetpu/releases/download/${LIBEDGETPU_VERSION1}TF${LIBEDGETPU_VERSION2}/libedgetpu1-max_${LIBEDGETPU_VERSION1}tf${LIBEDGETPU_VERSION2}.${DEBIAN_VERSION}_${CPU_ARCHITECTURE}.deb"
 
-
 # Install libedgetpu
 RUN apt-get update && apt-get install libusb-1.0-0 curl -y \
     && curl ${LIBEDGETPU_RELEASE_URL} --output /tmp/libedgetpu.deb -L --fail \
