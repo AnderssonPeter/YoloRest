@@ -224,7 +224,7 @@ class YOLOFLite:
                 right = left + w
                 bottom = top + h
                 predictions.predictions.append(
-                    Prediction(label=label, confidence=score * 100, y_min=top, x_min=left, y_max=bottom, x_max=right)
+                    Prediction(label=label, confidence=score, y_min=top, x_min=left, y_max=bottom, x_max=right)
                 )
         return predictions
 
@@ -239,7 +239,7 @@ class YOLOFLite:
             (List[Detection]): List of detected objects with their bounding boxes, scores and label.
         """
         # Load and preprocess image
-        
+
         x, pad = self.preprocess(img)
 
         # Apply quantization if model is int8
