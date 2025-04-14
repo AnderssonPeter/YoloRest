@@ -11,10 +11,13 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
+                "--log_level",
+                "debug",
                 "--label_file",
                 "models/metadata.yaml",
                 "--model_file",
-                "models/yolov8n.tflite"
+                "models/yolov8n.tflite",
+                "--enable_save"
             ],
         }
     ]
