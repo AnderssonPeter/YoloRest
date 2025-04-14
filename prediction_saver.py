@@ -32,7 +32,7 @@ class PredictionSaver:
         while True:
             prediction = await self.queue.get()
             try:
-                timestamp = datetime.datetime.now().isoformat(timespec="seconds").replace(":", "-")
+                timestamp = datetime.datetime.now().isoformat(timespec="milliseconds").replace(":", "-")
                 labels = "_".join({p.label for p in prediction.predictions.predictions}) if prediction.predictions else "no_labels"
                 filename_base = f"{timestamp}_{labels}"
 
