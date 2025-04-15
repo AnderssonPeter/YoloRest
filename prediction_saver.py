@@ -38,7 +38,8 @@ class PredictionSaver:
 
                 # Save image
                 image_path = os.path.join(self.output_path, f"{filename_base}.jpg")
-                cv2.imwrite(image_path, prediction.image)
+                with open(image_path, "w") as file:
+                    file.write(prediction.image)
                 logger.info(f"Image saved to {image_path}")
 
                 # Save predictions as JSON
