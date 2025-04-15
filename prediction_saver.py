@@ -38,7 +38,7 @@ class PredictionSaver:
 
                 # Save image
                 image_path = os.path.join(self.output_path, f"{filename_base}.jpg")
-                with open(image_path, "w") as file:
+                with open(image_path, "wb") as file:
                     file.write(prediction.image)
                 logger.info(f"Image saved to {image_path}")
 
