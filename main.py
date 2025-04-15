@@ -92,9 +92,8 @@ async def detect_objects(image: Annotated[bytes, File()]):
         logger.debug("Image decoded successfully. Running detection...")
         predictions = detector.detect(img)
         logger.debug(f"Detection completed. Found {len(predictions.predictions)} objects.")
-    
         prediction_item = PredictionItem(
-            image=img,
+            image=image,
             predictions=predictions
         )
         await prediction_saver.add_prediction(prediction_item)
@@ -104,7 +103,7 @@ async def detect_objects(image: Annotated[bytes, File()]):
         raise e
 
 async def main():
-    logger.info("Starting application...")
+    print("Starting application...")
 
     asyncio.create_task(prediction_saver.process())
     config = Config(app, host="0.0.0.0", port=8000)
