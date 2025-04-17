@@ -26,7 +26,8 @@ class PredictionSaver:
             logger.debug("Prediction saving is disabled. Skipping save.")
         elif self.queue.full():
             logger.warning("Prediction queue is full. Skipping save.")
-        await self.queue.put(prediction)
+        else:
+            await self.queue.put(prediction)
 
     async def process(self):
         while True:
