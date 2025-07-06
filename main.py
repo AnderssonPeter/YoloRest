@@ -36,6 +36,7 @@ parser.add_argument("--device", type=str, default="cpu", help="Device to run the
 parser.add_argument("--confidence_threshold", type=float, default=0.25, help="Confidence threshold for detection")
 parser.add_argument("--iou_threshold", type=float, default=0.45, help="Intersection over Union (IoU) threshold for detection")
 parser.add_argument("--enable_save", action="store_true", help="Enable saving images and predictions")
+parser.add_argument("--save_threshold", type=float, default=0.75, help="Threshold for saving predictions")
 parser.add_argument("--save_path", type=str, default="./output", help="Folder to save images and predictions")
 
 args = parser.parse_args()
@@ -65,6 +66,7 @@ detector = YOLOFLite(model_file, labels, confidence_threshold, intersection_over
 logger.info("YOLO detector initialized successfully.")
 
 enable_save = args.enable_save
+save_threshold = args.save_threshold
 save_path = args.save_path
 
 prediction_saver = PredictionSaver(enable_save, save_path)

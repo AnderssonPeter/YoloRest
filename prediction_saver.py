@@ -14,8 +14,9 @@ class PredictionItem:
         self.predictions = predictions
 
 class PredictionSaver:
-    def __init__(self, enabled: bool, output_path: str):
+    def __init__(self, enabled: bool, threshold: float, output_path: str):
         self.enabled = enabled
+        self.threshold = threshold
         self.output_path = output_path
         if enabled and not os.path.isdir(output_path):
             raise ValueError(f"Output path {output_path} is not a directory.")
@@ -26,6 +27,8 @@ class PredictionSaver:
             logger.debug("Prediction saving is disabled. Skipping save.")
         elif self.queue.full():
             logger.warning("Prediction queue is full. Skipping save.")
+        elif all(p.confidence < self.threshold for p in prediction.predictions.predictions):
+            logger.debug("Prediction confidence below threshold. Skipping save.")
         else:
             await self.queue.put(prediction)
 
