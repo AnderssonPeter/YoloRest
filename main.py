@@ -69,7 +69,7 @@ enable_save = args.enable_save
 save_threshold = args.save_threshold
 save_path = args.save_path
 
-prediction_saver = PredictionSaver(enable_save, save_path)
+prediction_saver = PredictionSaver(enable_save, save_threshold, save_path)
 
 app = FastAPI()
 
