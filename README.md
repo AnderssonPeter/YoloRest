@@ -97,5 +97,27 @@ Ultralytics model source: https://github.com/ultralytics/assets/releases/tag/v8.
 `docker run -it --rm -v .:/models ultralytics/ultralytics:latest-cpu yolo export model=/models/[name].pt format=[edgetpu/tflite int8]`
 
 
+## Optimized YOLOv9 model
+
+Support for the modified YOLOv9 model from
+[frigate-detector-edgetpu-yolo9](https://github.com/dbro/frigate-detector-edgetpu-yolo9) is enabled with
+`--model_type optimized_yolov9`. Download the model from the
+[v2.1 release](https://github.com/dbro/frigate-detector-edgetpu-yolo9/releases/download/v2.1/yolov9-s-relu6-sl21_320_int8_edgetpu.tflite).
+
+```bash
+python main.py \
+  --model_type optimized_yolov9 \
+  --model_file /models/yolov9-s-relu6-sl21_320_int8_edgetpu.tflite \
+  --label_file /models/labelmap_yolov9.txt \
+  --device pci
+```
+
+The label file must match the model's class order and use the same `id name` format as the other label files,
+for example `0 person`. The `labels-coco17.txt` file from the reference repository is a plain list without
+class IDs, so prefix each line with its zero-based index before using it here.
+
+The EdgeTPU-compiled model must run on a Coral device (`--device pci` or `--device usb`); `--device cpu` cannot
+run it. The default remains `--model_type yolov8` when the flag is omitted.
+
 ## Dev load vent
 `source ~/object-detection/bin/activate`

@@ -3,7 +3,7 @@ import asyncio
 import logging
 from typing import Annotated
 import numpy as np
-from YOLOFLite import YOLOFLite
+from detector_factory import create_detector
 import cv2
 from prediction import Predictions
 from label import parse_labels
@@ -32,6 +32,7 @@ parser.add_argument(
 )
 parser.add_argument("--label_file", type=str, required=True, help="Path to the label file")
 parser.add_argument("--model_file", type=str, required=True, help="Path to the model file")
+parser.add_argument("--model_type", type=str, default="yolov8", choices=["yolov8", "optimized_yolov9"], help="Model post-processing type (default: yolov8)")
 parser.add_argument("--device", type=str, default="cpu", help="Device to run the model on ('auto', 'cpu', 'usb', 'usb:0', 'usb:1', 'pci:1', 'pci:2')")
 parser.add_argument("--confidence_threshold", type=float, default="0.25", help="Confidence threshold for detection")
 parser.add_argument("--iou_threshold", type=float, default=0.45, help="Intersection over Union (IoU) threshold for detection")
@@ -53,6 +54,7 @@ logger.debug(f"Parsed arguments: {args}")
 
 label_file = args.label_file
 model_file = args.model_file
+model_type = args.model_type
 confidence_threshold = args.confidence_threshold
 intersection_over_union_threshold = args.iou_threshold
 device = args.device
@@ -61,8 +63,8 @@ logger.debug("Parsing labels...")
 labels = parse_labels(label_file)
 logger.info(f"Loaded {len(labels)} labels.")
 
-logger.info("Initializing YOLO detector...")
-detector = YOLOFLite(model_file, labels, confidence_threshold, intersection_over_union_threshold, device)
+logger.info(f"Initializing YOLO detector ({model_type})...")
+detector = create_detector(model_type, model_file, labels, confidence_threshold, intersection_over_union_threshold, device)
 logger.info("YOLO detector initialized successfully.")
 
 enable_save = args.enable_save
