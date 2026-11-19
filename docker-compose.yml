@@ -1,0 +1,39 @@
+networks:
+  traefik:
+    external: true
+    name: traefik
+
+services:
+  yolo-rest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yolo-rest
+    restart: on-failure
+    group_add:
+      - "${GROUP_CORAL}"
+    security_opt:
+      - "no-new-privileges=true"
+    networks:
+      traefik:
+    environment:
+      - TZ=Europe/Stockholm
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./models:/models
+    devices:
+      - /dev/apex_1:/dev/apex_1
+    command:
+      - "--device pci:1"
+      - "--label_file /models/metadata.yaml"
+      - "--model_file /models/yolo11n_edgetpu.tflite"
+    labels:
+      - "org.label-schema.group=Surveillance"
+      - "traefik.enable=true"
+      - "traefik.http.routers.yolo-rest.rule=Host(`yolo-rest.${DOMAIN}`)"
+      - "traefik.http.routers.yolo-rest.entrypoints=websecure"
+      - "traefik.http.routers.yolo-rest.middlewares=secure-local-auth@file"
+      - "traefik.http.services.yolo-rest.loadbalancer.server.port=8000"
+      - 'promtail.enable=true'
+      - "homepage.group=Tools"
+      - "homepage.name=yolo-rest"
