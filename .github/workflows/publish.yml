@@ -14,6 +14,21 @@ jobs:
     steps:
     - name: Check out
       uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: pip
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+    - name: Validate Python compilation
+      run: python -m compileall -q .
+    - name: Type check application modules
+      run: |
+        python -m pip install mypy
+        mypy --ignore-missing-imports --disable-error-code=import-untyped --follow-imports=skip main.py prediction_selector.py prediction_saver.py confidence_evaluator.py prediction.py label.py detector_factory.py yolov9_postprocess.py
+    - name: Run unit tests
+      run: python -m unittest discover -s tests -v
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx

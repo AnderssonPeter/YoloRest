@@ -89,6 +89,50 @@ model:
 ```
 
 
+## Prediction saving
+
+Enable saving with `--enable_save`, the saver groups images into a time window
+and keeps only a limited selection.
+
+A window starts when an image reaches `--save_threshold`. Each new image that
+reaches the threshold extends the window. The window ends when no new threshold
+image arrives for `--save_scan_time` seconds, or when `--save_max_scan_time`
+seconds have passed since the first threshold image. When a window starts, the
+saver also looks back `--save_scan_time` seconds so images captured before the
+first threshold image are included.
+
+At the end of the window the saver writes:
+
+- `--save_number_best` highest-confidence images for every label detected in the window.
+- `--save_number_worst` lowest-confidence images for every label detected in the window.
+- `--number_without_label` images that contain no labels.
+
+Images are written under `--save_path/<date>/<label>/<best|worst|no_label>/`
+together with their prediction JSON files.
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `--save_number_best` | `5` | Number of best (highest confidence) images to keep per detected label and window. |
+| `--save_number_worst` | `5` | Number of worst (lowest confidence) correct-label images to keep per detected label and window. |
+| `--number_without_label` | `5` | Number of images without labels to keep per window. |
+| `--save_scan_time` | `5.0` | Seconds without a new threshold hit before the window ends; also used as the look-back time when a window starts. |
+| `--save_max_scan_time` | `60.0` | Maximum window duration in seconds, measured from the first threshold hit. |
+
+For example:
+
+```bash
+python main.py \
+  --enable_save \
+  --save_path ./output \
+  --save_threshold 0.75 \
+  --save_number_best 5 \
+  --save_number_worst 5 \
+  --number_without_label 5 \
+  --save_scan_time 5 \
+  --save_max_scan_time 60
+```
+
+
 # notes
 Ultralytics model source: https://github.com/ultralytics/assets/releases/tag/v8.3.0
 

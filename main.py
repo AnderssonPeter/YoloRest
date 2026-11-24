@@ -10,7 +10,8 @@ from label import parse_labels
 from fastapi import FastAPI, File
 from uvicorn import Config, Server
 
-from prediction_saver import PredictionItem, PredictionSaver
+from prediction_selector import PredictionItem
+from prediction_saver import PredictionSaver
 
 if __name__ != "__main__":
     raise Exception("This script is not intended to be imported as a module.")
@@ -39,6 +40,11 @@ parser.add_argument("--iou_threshold", type=float, default=0.45, help="Intersect
 parser.add_argument("--enable_save", action="store_true", help="Enable saving images and predictions")
 parser.add_argument("--save_threshold", type=str, default="0.75", help="Threshold for saving predictions, can be a float or an expression like deer:0.75,person:0.60-0.75,0.80")
 parser.add_argument("--save_path", type=str, default="./output", help="Folder to save images and predictions")
+parser.add_argument("--save_number_best", type=int, default=5, help="Number of best (highest confidence) images to keep per label session")
+parser.add_argument("--save_number_worst", type=int, default=5, help="Number of worst (lowest confidence) correct-label images to keep per label session")
+parser.add_argument("--number_without_label", type=int, default=5, help="Number of images without labels to keep per label session")
+parser.add_argument("--save_scan_time", type=float, default=5.0, help="Seconds to wait for a new threshold hit before ending a session; also used as look-back time")
+parser.add_argument("--save_max_scan_time", type=float, default=60.0, help="Maximum duration in seconds of a label session")
 
 args = parser.parse_args()
 log_level = logging._nameToLevel[args.log_level.upper()]
@@ -67,11 +73,17 @@ logger.info(f"Initializing YOLO detector ({model_type})...")
 detector = create_detector(model_type, model_file, labels, confidence_threshold, intersection_over_union_threshold, device)
 logger.info("YOLO detector initialized successfully.")
 
-enable_save = args.enable_save
-save_threshold = args.save_threshold
-save_path = args.save_path
-
-prediction_saver = PredictionSaver(enable_save, save_threshold, save_path)
+prediction_saver = PredictionSaver(
+    enabled=args.enable_save,
+    confidence_expression=args.save_threshold,
+    output_path=args.save_path,
+    save_number_best=args.save_number_best,
+    save_number_worst=args.save_number_worst,
+    number_without_label=args.number_without_label,
+    save_scan_time=args.save_scan_time,
+    save_max_scan_time=args.save_max_scan_time,
+    number_of_labels=len(labels),
+)
 
 app = FastAPI()
 
