@@ -107,8 +107,10 @@ At the end of the window the saver writes:
 - `--save_number_worst` lowest-confidence images for every label detected in the window.
 - `--number_without_label` images that contain no labels.
 
-Images are written under `--save_path/<date>/<label>/<best|worst|no_label>/`
-together with their prediction JSON files.
+Images are written under
+`--save_path/<date>/<start HH.MM.SS>-<end HH.MM.SS>/<best|worst|background>/`
+together with their prediction JSON files. Times use a 24-hour clock, and `.`
+is used instead of `:` because `:` is not valid in file and directory names.
 
 | Parameter | Default | Description |
 | --- | --- | --- |

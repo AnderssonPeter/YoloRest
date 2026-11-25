@@ -19,7 +19,7 @@ class PredictionItem:
 class SaveCategory(StrEnum):
     BEST = "best"
     WORST = "worst"
-    NO_LABEL = "no_label"
+    BACKGROUND = "background"
 
 
 @dataclass
@@ -28,6 +28,8 @@ class SavedPrediction:
     label: str
     category: SaveCategory
     confidence: float | None = None
+    window_start: float | None = None
+    window_end: float | None = None
 
 
 @dataclass
@@ -187,16 +189,37 @@ class PredictionSelector:
             worst = remaining[: self.save_number_worst]
 
             saved.extend(
-                SavedPrediction(item, label, SaveCategory.BEST, confidence)
+                SavedPrediction(
+                    item,
+                    label,
+                    SaveCategory.BEST,
+                    confidence,
+                    session.start_time,
+                    session.end_time,
+                )
                 for confidence, item in best
             )
             saved.extend(
-                SavedPrediction(item, label, SaveCategory.WORST, confidence)
+                SavedPrediction(
+                    item,
+                    label,
+                    SaveCategory.WORST,
+                    confidence,
+                    session.start_time,
+                    session.end_time,
+                )
                 for confidence, item in worst
             )
 
         saved.extend(
-            SavedPrediction(item, "no_label", SaveCategory.NO_LABEL, None)
+            SavedPrediction(
+                item,
+                "background",
+                SaveCategory.BACKGROUND,
+                None,
+                session.start_time,
+                session.end_time,
+            )
             for item in without_label[: self.number_without_label]
         )
         return saved

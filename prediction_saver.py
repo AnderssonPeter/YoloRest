@@ -105,15 +105,28 @@ class PredictionSaver:
 
     def _save(self, saved: SavedPrediction):
         prediction = saved.prediction
-        timestamp = datetime.datetime.fromtimestamp(
+        fallback_timestamp = (
             prediction.timestamp if prediction.timestamp is not None else time.time()
         )
-        date = timestamp.strftime("%Y-%m-%d")
-        time_string = timestamp.strftime("%H-%M-%S-%f")[:-3]
+        window_start = datetime.datetime.fromtimestamp(
+            saved.window_start if saved.window_start is not None else fallback_timestamp
+        )
+        window_end = datetime.datetime.fromtimestamp(
+            saved.window_end if saved.window_end is not None else fallback_timestamp
+        )
+        date = window_start.strftime("%Y-%m-%d")
+        time_range = (
+            f"{window_start.strftime('%H.%M.%S')}-{window_end.strftime('%H.%M.%S')}"
+        )
+        time_string = datetime.datetime.fromtimestamp(fallback_timestamp).strftime(
+            "%H-%M-%S-%f"
+        )[:-3]
 
-        label = self._safe_component(saved.label)
         directory = os.path.join(
-            self.output_path, date, label, self._safe_component(saved.category)
+            self.output_path,
+            date,
+            self._safe_component(time_range),
+            self._safe_component(saved.category),
         )
         os.makedirs(directory, exist_ok=True)
 
@@ -136,4 +149,4 @@ class PredictionSaver:
 
     @staticmethod
     def _safe_component(value: str) -> str:
-        return str(value).replace(os.sep, "_").replace("/", "_")
+        return str(value).replace(os.sep, "_").replace("/", "_").replace(":", "-")

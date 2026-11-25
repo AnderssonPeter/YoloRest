@@ -75,6 +75,8 @@ class TestPredictionSelector(unittest.TestCase):
         self.assertEqual(timestamps(results, "worst"), [2, 4])
         self.assertTrue(all(result.label == "person" for result in results))
         self.assertIsInstance(results[0].category, SaveCategory)
+        self.assertTrue(all(result.window_start == 0 for result in results))
+        self.assertTrue(all(result.window_end == 6 for result in results))
 
     def test_session_looks_back_before_first_trigger(self):
         selector = make_selector(best=1, worst=1, without_label=1, scan_time=3)
@@ -86,7 +88,7 @@ class TestPredictionSelector(unittest.TestCase):
         results = selector.tick(5)
         self.assertEqual(timestamps(results, "best"), [2])
         self.assertEqual(timestamps(results, "worst"), [0])
-        self.assertEqual(timestamps(results, "no_label"), [1])
+        self.assertEqual(timestamps(results, "background"), [1])
 
     def test_lookback_does_not_reach_past_scan_time(self):
         selector = make_selector(best=1, worst=1, without_label=0, scan_time=2)
@@ -141,7 +143,7 @@ class TestPredictionSelector(unittest.TestCase):
         selector.add_prediction(make_item(None), now=1.5)
 
         results = selector.tick(2)
-        self.assertEqual(timestamps(results, "no_label"), [0.5, 1])
+        self.assertEqual(timestamps(results, "background"), [0.5, 1])
 
     def test_single_timer_is_extended_by_any_label(self):
         selector = make_selector(best=1, worst=0, without_label=0, scan_time=2)
@@ -181,13 +183,13 @@ class TestPredictionSelector(unittest.TestCase):
         results = selector.tick(2)
         self.assertEqual(timestamps(results, "best"), [0])
 
-    def test_forced_item_without_labels_is_saved_as_no_label(self):
+    def test_forced_item_without_labels_is_saved_as_background(self):
         selector = make_selector(best=0, worst=0, without_label=1, scan_time=2)
 
         selector.add_prediction(make_item(None, forced=True), now=0)
 
         results = selector.tick(2)
-        self.assertEqual(timestamps(results, "no_label"), [0])
+        self.assertEqual(timestamps(results, "background"), [0])
 
     def test_images_below_threshold_do_not_start_a_session(self):
         selector = make_selector(best=1, worst=1, without_label=1, scan_time=2)
@@ -311,7 +313,7 @@ class TestPredictionSelector(unittest.TestCase):
         results = selector.tick(2)
         self.assertEqual(timestamps(results, "best", "person"), [0])
         self.assertEqual(timestamps(results, "worst", "person"), [])
-        self.assertEqual(timestamps(results, "no_label"), [0.5])
+        self.assertEqual(timestamps(results, "background"), [0.5])
 
     def test_label_specific_threshold_controls_session_start(self):
         selector = make_selector(
